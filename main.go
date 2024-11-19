@@ -54,13 +54,13 @@ func initDB() {
 
 	// Create `UserID` table
 	_, err = db.Exec(`
-	CREATE TABLE IF NOT EXISTS UserID (
+	CREATE TABLE IF NOT EXISTS check (
 		user_id BIGINT,
 		referrerID BIGINT,
 		UNIQUE(user_id)
 	);`)
 	if err != nil {
-		log.Fatalln("Error creating UserID table:", err)
+		log.Fatalln("Error creating check table:", err)
 	}
 
 	log.Println("Database initialized successfully.")
@@ -103,7 +103,7 @@ func handleStart(update tgbotapi.Update) {
 
 	// Check if user joined the channel
 	if !checkIfUserJoinedChannel(userID) {
-		query := "INSERT INTO UserID(user_id, referrerID) VALUES(?, ?)"
+		query := "INSERT INTO check(user_id, referrerID) VALUES(?, ?)"
 		_, err := db.Exec(query, userID, referrerID)
 		if err != nil {
 			log.Println("Error inserting user ID:", err)
@@ -121,7 +121,7 @@ func handleStart(update tgbotapi.Update) {
 	}
 
 	if !userExists {
-		query := "SELECT referrerID FROM UserID WHERE user_id=?"
+		query := "SELECT referrerID FROM check WHERE user_id=?"
 		err := db.QueryRow(query, userID).Scan(&referrerID)
 		if err != nil {
 			return
