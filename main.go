@@ -103,7 +103,7 @@ func handleStart(update tgbotapi.Update) {
 
 	// Check if user joined the channel
 	if !checkIfUserJoinedChannel(userID) {
-		query := "INSERT IGNORE INTO UserID(user_id, referrerID) VALUES(?, ?)"
+		query := "INSERT INTO UserID(user_id, referrerID) VALUES(?, ?)"
 		_, err := db.Exec(query, userID, referrerID)
 		if err != nil {
 			log.Println("Error inserting user ID:", err)
@@ -121,6 +121,11 @@ func handleStart(update tgbotapi.Update) {
 	}
 
 	if !userExists {
+		query := "SELECT referrerID FROM UserID WHERE user_id=?"
+		err := db.QueryRow(query, userID).Scan(&referrerID)
+		if err != nil {
+			return
+		}
 		referralLink := generateReferralLink(userID)
 		if referrerID > 0 {
 			_, err := db.Exec("INSERT INTO users (id, username, referred, referral_link, referrer) VALUES (?, ?, ?, ?, ?)", userID, username, true, referralLink, referrerID)
