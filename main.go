@@ -57,7 +57,7 @@ func initDB() {
 	CREATE TABLE IF NOT EXISTS UserID (
 		user_id BIGINT,
 		referrerID BIGINT,
-		UNIQUE(user_id, referrerID)
+		UNIQUE(user_id)
 	);`)
 	if err != nil {
 		log.Fatalln("Error creating UserID table:", err)
