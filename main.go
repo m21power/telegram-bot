@@ -71,7 +71,7 @@ func generateReferralLink(userID int) string {
 }
 
 func checkIfUserJoinedChannel(userID int) bool {
-	channelUsername := os.Getenv("TELEGRAM_CHANNEL_USERNAME")
+	channelUsername := "@CNCSMEMES"
 	memberStatus, err := bot.GetChatMember(tgbotapi.ChatConfigWithUser{
 		SuperGroupUsername: channelUsername,
 		UserID:             userID,
