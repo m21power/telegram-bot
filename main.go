@@ -105,6 +105,9 @@ func handleStart(update tgbotapi.Update) {
 
 	// if referreID != 0 but userID not joined the channel
 	if referrerID != 0 && checkIfUserJoinedChannel(userID) {
+		referralLink := generateReferralLink(userID)
+		message := "🎉 Welcome to the CNCS(4K) MEMES! 🚀 Ready to unleash some epic laughs? Share this link with your friends, enemies who always laughs too loud: \n\n" + referralLink + "\n\n😂 Let's see who can bring in the most recruits! More memes, more fun!"
+		bot.Send(tgbotapi.NewMessage(update.Message.Chat.ID, message))
 		return
 	}
 	// Check if user joined the channel
