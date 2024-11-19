@@ -215,7 +215,10 @@ func main() {
 		log.Fatalln("Error starting bot:", err)
 	}
 	initDB()
-
+	_, err = bot.RemoveWebhook()
+	if err != nil {
+		log.Fatalf("Error removing webhook: %v\n", err)
+	}
 	u := tgbotapi.NewUpdate(0)
 	u.Timeout = 60
 	updates, err := bot.GetUpdatesChan(u)
