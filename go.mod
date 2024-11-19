@@ -9,5 +9,6 @@ require (
 
 require (
 	filippo.io/edwards25519 v1.1.0 // indirect
+	github.com/joho/godotenv v1.5.1 // indirect
 	github.com/technoweenie/multipartstreamer v1.0.1 // indirect
 )
