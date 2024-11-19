@@ -2,10 +2,8 @@ package main
 
 import (
 	"database/sql"
-	"encoding/json"
 	"fmt"
 	"log"
-	"net/http"
 	"os"
 	"strconv"
 	"strings"
@@ -200,25 +198,6 @@ func handleStats(update tgbotapi.Update) {
 
 	bot.Send(tgbotapi.NewMessage(update.Message.Chat.ID, message.String()))
 }
-func webhookHandler(w http.ResponseWriter, r *http.Request) {
-	update := tgbotapi.Update{}
-	err := json.NewDecoder(r.Body).Decode(&update)
-	if err != nil {
-		http.Error(w, "Bad request", http.StatusBadRequest)
-		return
-	}
-
-	if update.Message != nil && update.Message.IsCommand() {
-		switch update.Message.Command() {
-		case "start":
-			handleStart(update)
-		case "myreferrals":
-			handleMyReferrals(update)
-		case "stats":
-			handleStats(update)
-		}
-	}
-}
 func main() {
 	var err error
 	// err = godotenv.Load()
@@ -235,14 +214,6 @@ func main() {
 	if err != nil {
 		log.Fatalln("Error starting bot:", err)
 	}
-	webhookURL := os.Getenv("WEBHOOK_URL") // Your public-facing URL
-	_, err = bot.SetWebhook(tgbotapi.NewWebhook(webhookURL + "/webhook"))
-	if err != nil {
-		log.Fatalf("Error setting webhook: %v\n", err)
-	}
-
-	http.HandleFunc("/webhook", webhookHandler)
-	log.Fatal(http.ListenAndServe(":8080", nil))
 	initDB()
 
 	u := tgbotapi.NewUpdate(0)
