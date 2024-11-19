@@ -67,7 +67,7 @@ func initDB() {
 }
 
 func generateReferralLink(userID int) string {
-	return fmt.Sprintf("https://t.me/CNCSMEMERECIEVERbot?start=%d", userID)
+	return fmt.Sprintf("https://t.me/Meme_receiver_bot?start=%d", userID)
 }
 
 func checkIfUserJoinedChannel(userID int) bool {
