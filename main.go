@@ -220,17 +220,21 @@ func webhookHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 func main() {
-	initDB()
+	var err error
+	// err = godotenv.Load()
+	// if err != nil {
+	// 	log.Println("Error loading .env file")
+	// }
+
 	botToken := os.Getenv("TELEGRAM_BOT_TOKEN")
 	if botToken == "" {
 		log.Fatalln("TELEGRAM_BOT_TOKEN is not set.")
 	}
 
-	bot, err := tgbotapi.NewBotAPI(botToken)
+	bot, err = tgbotapi.NewBotAPI(botToken)
 	if err != nil {
 		log.Fatalln("Error starting bot:", err)
 	}
-
 	webhookURL := os.Getenv("WEBHOOK_URL") // Your public-facing URL
 	_, err = bot.SetWebhook(tgbotapi.NewWebhook(webhookURL + "/webhook"))
 	if err != nil {
@@ -238,5 +242,26 @@ func main() {
 	}
 
 	http.HandleFunc("/webhook", webhookHandler)
-	log.Fatal(http.ListenAndServe(":8080", nil)) // Replace with your desired port
+	log.Fatal(http.ListenAndServe(":8080", nil))
+	initDB()
+
+	u := tgbotapi.NewUpdate(0)
+	u.Timeout = 60
+	updates, err := bot.GetUpdatesChan(u)
+	if err != nil {
+		log.Fatalln("Error getting updates:", err)
+	}
+
+	for update := range updates {
+		if update.Message != nil && update.Message.IsCommand() {
+			switch update.Message.Command() {
+			case "start":
+				handleStart(update)
+			case "myreferrals":
+				handleMyReferrals(update)
+			case "stats":
+				handleStats(update)
+			}
+		}
+	}
 }
