@@ -220,6 +220,7 @@ func webhookHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 func main() {
+	initDB()
 	botToken := os.Getenv("TELEGRAM_BOT_TOKEN")
 	if botToken == "" {
 		log.Fatalln("TELEGRAM_BOT_TOKEN is not set.")
