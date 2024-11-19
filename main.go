@@ -10,6 +10,7 @@ import (
 
 	_ "github.com/go-sql-driver/mysql"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
+	"github.com/joho/godotenv"
 )
 
 var bot *tgbotapi.BotAPI
@@ -54,13 +55,13 @@ func initDB() {
 
 	// Create `UserID` table
 	_, err = db.Exec(`
-	CREATE TABLE IF NOT EXISTS check (
-		user_id BIGINT,
-		referrerID BIGINT,
-		UNIQUE(user_id)
-	);`)
+	CREATE TABLE IF NOT EXISTS user_checks (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id int,
+    referrerID int
+);`)
 	if err != nil {
-		log.Fatalln("Error creating check table:", err)
+		log.Fatalln("Error creating user_checks table:", err)
 	}
 
 	log.Println("Database initialized successfully.")
@@ -97,16 +98,23 @@ func handleStart(update tgbotapi.Update) {
 			referrerID = 0
 		}
 	}
+	// if referreID == 0 but userID not joined the channel
+	//if referredId == 0 but user id joined the channel
+
+	//if referredId != 0 but user id joined the channel
+
+	// if referreID != 0 but userID not joined the channel
 	if referrerID != 0 && checkIfUserJoinedChannel(userID) {
 		return
 	}
-
 	// Check if user joined the channel
 	if !checkIfUserJoinedChannel(userID) {
-		query := "INSERT INTO check(user_id, referrerID) VALUES(?, ?)"
-		_, err := db.Exec(query, userID, referrerID)
-		if err != nil {
-			log.Println("Error inserting user ID:", err)
+		if referrerID != 0 {
+			query := "INSERT INTO user_checks(user_id, referrerID) VALUES(?, ?)"
+			_, err := db.Exec(query, userID, referrerID)
+			if err != nil {
+				log.Println("Error inserting user ID:", err)
+			}
 		}
 		bot.Send(tgbotapi.NewMessage(update.Message.Chat.ID, "Please join our channel @CNCSMEMES before using the bot. After joining, send any message here."))
 		return
@@ -121,10 +129,19 @@ func handleStart(update tgbotapi.Update) {
 	}
 
 	if !userExists {
-		query := "SELECT referrerID FROM check WHERE user_id=?"
-		err := db.QueryRow(query, userID).Scan(&referrerID)
+		var referrerID int
+		query := "SELECT referrerID FROM user_checks WHERE user_id = ?"
+		row := db.QueryRow(query, userID)
+
+		err := row.Scan(&referrerID)
 		if err != nil {
-			return
+			if err == sql.ErrNoRows {
+				log.Println("No referrerID found for this user_id.")
+				referrerID = 0 // Default value, or handle as per your logic
+			} else {
+				log.Printf("Error querying referrerID: %v\n", err)
+				// Handle unexpected errors, e.g., database issues
+			}
 		}
 		referralLink := generateReferralLink(userID)
 		if referrerID > 0 {
@@ -205,10 +222,10 @@ func handleStats(update tgbotapi.Update) {
 }
 func main() {
 	var err error
-	// err = godotenv.Load()
-	// if err != nil {
-	// 	log.Println("Error loading .env file")
-	// }
+	err = godotenv.Load()
+	if err != nil {
+		log.Println("Error loading .env file")
+	}
 
 	botToken := os.Getenv("TELEGRAM_BOT_TOKEN")
 	if botToken == "" {
