@@ -108,7 +108,7 @@ func handleStart(update tgbotapi.Update) {
 		if err != nil {
 			log.Println("Error inserting user ID:", err)
 		}
-		bot.Send(tgbotapi.NewMessage(update.Message.Chat.ID, "Please join our channel before using the bot. After joining, send any message here."))
+		bot.Send(tgbotapi.NewMessage(update.Message.Chat.ID, "Please join our channel @CNCSMEMES before using the bot. After joining, send any message here."))
 		return
 	}
 
