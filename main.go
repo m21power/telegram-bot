@@ -10,7 +10,6 @@ import (
 
 	_ "github.com/go-sql-driver/mysql"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
-	"github.com/joho/godotenv"
 )
 
 var bot *tgbotapi.BotAPI
@@ -138,9 +137,9 @@ func handleStart(update tgbotapi.Update) {
 		}
 	}
 
-	// Send referral link to the user
 	referralLink := generateReferralLink(userID)
-	bot.Send(tgbotapi.NewMessage(update.Message.Chat.ID, "Welcome! Use this referral link to invite others: "+referralLink))
+	message := "🎉 Welcome to the CNCS(4K) MEMES! 🚀 Ready to unleash some epic laughs? Share this link with your friends, enemies who always laughs too loud: \n\n" + referralLink + "\n\n😂 Let's see who can bring in the most recruits! More memes, more fun!"
+	bot.Send(tgbotapi.NewMessage(update.Message.Chat.ID, message))
 }
 
 func handleMyReferrals(update tgbotapi.Update) {
@@ -199,10 +198,10 @@ func handleStats(update tgbotapi.Update) {
 
 func main() {
 	var err error
-	err = godotenv.Load()
-	if err != nil {
-		log.Println("Error loading .env file")
-	}
+	// err = godotenv.Load()
+	// if err != nil {
+	// 	log.Println("Error loading .env file")
+	// }
 
 	botToken := os.Getenv("TELEGRAM_BOT_TOKEN")
 	if botToken == "" {
