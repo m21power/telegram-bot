@@ -2,8 +2,10 @@ package main
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 	"strconv"
 	"strings"
@@ -96,6 +98,9 @@ func handleStart(update tgbotapi.Update) {
 			log.Printf("Invalid referral ID: %s. Error: %v\n", referralID, err)
 			referrerID = 0
 		}
+	}
+	if referrerID != 0 && checkIfUserJoinedChannel(userID) {
+		return
 	}
 
 	// Check if user joined the channel
@@ -195,43 +200,42 @@ func handleStats(update tgbotapi.Update) {
 
 	bot.Send(tgbotapi.NewMessage(update.Message.Chat.ID, message.String()))
 }
+func webhookHandler(w http.ResponseWriter, r *http.Request) {
+	update := tgbotapi.Update{}
+	err := json.NewDecoder(r.Body).Decode(&update)
+	if err != nil {
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
 
+	if update.Message != nil && update.Message.IsCommand() {
+		switch update.Message.Command() {
+		case "start":
+			handleStart(update)
+		case "myreferrals":
+			handleMyReferrals(update)
+		case "stats":
+			handleStats(update)
+		}
+	}
+}
 func main() {
-	var err error
-	// err = godotenv.Load()
-	// if err != nil {
-	// 	log.Println("Error loading .env file")
-	// }
-
 	botToken := os.Getenv("TELEGRAM_BOT_TOKEN")
 	if botToken == "" {
 		log.Fatalln("TELEGRAM_BOT_TOKEN is not set.")
 	}
 
-	bot, err = tgbotapi.NewBotAPI(botToken)
+	bot, err := tgbotapi.NewBotAPI(botToken)
 	if err != nil {
 		log.Fatalln("Error starting bot:", err)
 	}
 
-	initDB()
-
-	u := tgbotapi.NewUpdate(0)
-	u.Timeout = 60
-	updates, err := bot.GetUpdatesChan(u)
+	webhookURL := os.Getenv("WEBHOOK_URL") // Your public-facing URL
+	_, err = bot.SetWebhook(tgbotapi.NewWebhook(webhookURL + "/webhook"))
 	if err != nil {
-		log.Fatalln("Error getting updates:", err)
+		log.Fatalf("Error setting webhook: %v\n", err)
 	}
 
-	for update := range updates {
-		if update.Message != nil && update.Message.IsCommand() {
-			switch update.Message.Command() {
-			case "start":
-				handleStart(update)
-			case "myreferrals":
-				handleMyReferrals(update)
-			case "stats":
-				handleStats(update)
-			}
-		}
-	}
+	http.HandleFunc("/webhook", webhookHandler)
+	log.Fatal(http.ListenAndServe(":8080", nil)) // Replace with your desired port
 }
