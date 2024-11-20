@@ -208,33 +208,8 @@ func handleStats(update tgbotapi.Update) {
 	var message strings.Builder
 	message.WriteString(fmt.Sprintf("%-5s %-20s %-10s\n", "Rank", "Username", "Referrals"))
 
-	// rank := 1
-
-	// for rows.Next() {
-	// 	var id int
-	// 	var name string
-	// 	var count int
-	// 	err := rows.Scan(&id, &name, &count)
-	// 	if err != nil {
-	// 		log.Println("Error scanning leaderboard row:", err)
-	// 		continue
-	// 	}
-	// 	message.WriteString(fmt.Sprintf("%-5d %-20s %-10d\n", rank, "@"+name, count))
-	// 	rank++
-	// }
-
-	// bot.Send(tgbotapi.NewMessage(update.Message.Chat.ID, message.String()))
-	// Temporary struct to hold leaderboard entries
-	type leaderboardEntry struct {
-		Rank      int
-		Username  string
-		Referrals int
-	}
-
-	var entries []leaderboardEntry
-	maxUsernameLength := len("Username") // Start with the header length
-
 	rank := 1
+
 	for rows.Next() {
 		var id int
 		var name string
@@ -244,32 +219,8 @@ func handleStats(update tgbotapi.Update) {
 			log.Println("Error scanning leaderboard row:", err)
 			continue
 		}
-
-		username := "@" + name // Prepend "@" to the username
-
-		// Track the maximum username length
-		if len(username) > maxUsernameLength {
-			maxUsernameLength = len(username)
-		}
-
-		entries = append(entries, leaderboardEntry{
-			Rank:      rank,
-			Username:  username,
-			Referrals: count,
-		})
-
+		message.WriteString(fmt.Sprintf("%-5d %-20s %-10d\n", rank, "@"+name, count))
 		rank++
-	}
-
-	// Create dynamic header and row formats
-	usernameColumnWidth := maxUsernameLength + 2 // Add 2 spaces for padding
-	headerFormat := fmt.Sprintf("%%-5s %%-%ds %%-%ds\n", usernameColumnWidth, 10)
-	rowFormat := fmt.Sprintf("%%-5d %%-%ds %%-%dd\n", usernameColumnWidth, 10)
-
-	// Build the message string
-	message.WriteString(fmt.Sprintf(headerFormat, "Rank", "Username", "Referrals"))
-	for _, entry := range entries {
-		message.WriteString(fmt.Sprintf(rowFormat, entry.Rank, entry.Username, entry.Referrals))
 	}
 
 	bot.Send(tgbotapi.NewMessage(update.Message.Chat.ID, message.String()))
