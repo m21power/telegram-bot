@@ -10,7 +10,6 @@ import (
 
 	_ "github.com/go-sql-driver/mysql"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
-	"github.com/joho/godotenv"
 )
 
 var bot *tgbotapi.BotAPI
@@ -206,10 +205,12 @@ func handleStats(update tgbotapi.Update) {
 	}
 	defer rows.Close()
 
-	// Format the leaderboard
 	var message strings.Builder
 	message.WriteString(fmt.Sprintf("%-5s %-20s %-10s\n", "Rank", "Username", "Referrals"))
-	for i := 1; rows.Next(); i++ {
+
+	rank := 1
+
+	for rows.Next() {
 		var id int
 		var name string
 		var count int
@@ -218,17 +219,19 @@ func handleStats(update tgbotapi.Update) {
 			log.Println("Error scanning leaderboard row:", err)
 			continue
 		}
-		message.WriteString(fmt.Sprintf("%-5d %-20s %-10d\n", i, name, count))
+		message.WriteString(fmt.Sprintf("%-5d %-20s %-10d\n", rank, "@"+name, count))
+		rank++
 	}
 
 	bot.Send(tgbotapi.NewMessage(update.Message.Chat.ID, message.String()))
+
 }
 func main() {
 	var err error
-	err = godotenv.Load()
-	if err != nil {
-		log.Println("Error loading .env file")
-	}
+	// err = godotenv.Load()
+	// if err != nil {
+	// 	log.Println("Error loading .env file")
+	// }
 
 	botToken := os.Getenv("TELEGRAM_BOT_TOKEN")
 	if botToken == "" {
